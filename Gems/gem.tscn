@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3 uid="uid://cana6uy438b3a"]
+
+[ext_resource type="Script" uid="uid://cxdgowp763ns3" path="res://Scripts/gem.gd" id="1_0lg78"]
+
+[node name="Gem" type="Node2D"]
+script = ExtResource("1_0lg78")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+scale = Vector2(2, 2)

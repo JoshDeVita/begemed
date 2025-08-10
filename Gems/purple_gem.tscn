@@ -1,0 +1,10 @@
+[gd_scene load_steps=3 format=3 uid="uid://df52c7500ls3b"]
+
+[ext_resource type="PackedScene" uid="uid://cana6uy438b3a" path="res://Gems/gem.tscn" id="1_l5bpx"]
+[ext_resource type="Texture2D" uid="uid://vkmllwuheqic" path="res://Assets/Purple Gem.png" id="2_71atk"]
+
+[node name="PurpleGem" instance=ExtResource("1_l5bpx")]
+GemColor = 3
+
+[node name="Sprite2D" parent="." index="0"]
+texture = ExtResource("2_71atk")
