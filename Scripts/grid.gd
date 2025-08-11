@@ -7,6 +7,9 @@ extends Node2D
 @export var offset: int
 
 #region Class variables
+enum States {WAIT, PLAY}
+var state: States
+
 enum Directions {WEST, EAST, NORTH, SOUTH}
 var direction: Dictionary[Directions, Vector2] = {
 	Directions.WEST: Vector2(-1, 0),
@@ -31,12 +34,14 @@ var active_move: bool
 #endregion
 
 func _ready() -> void:
+	state = States.PLAY
 	gems = generate_array()
 	spawn_pieces()
 
 @warning_ignore("unused_parameter")
 func _process(delta: float) -> void:
-	click_input()
+	if state == States.PLAY:
+		click_input()
 
 #region Connections
 func _on_destroy_timer_timeout() -> void:
@@ -44,11 +49,11 @@ func _on_destroy_timer_timeout() -> void:
 
 func _on_collapse_timer_timeout() -> void:
 	collapse_columns()
-	var refill_timer: Timer = $RefillTimer
-	refill_timer.start()
+	($RefillTimer as Timer).start()
 	
 func _on_refill_timer_timeout() -> void:
 	refill_columns()
+	check_for_additional_matches()
 #endregion
 
 #region Startup
@@ -136,6 +141,7 @@ func swap(location: Vector2, path: Vector2) -> void:
 	var gem_2_position: Vector2 = Vector2(location.x + path.x, location.y + path.y)
 	if gems[gem_1_position.x][gem_1_position.y] == null || gems[gem_2_position.x][gem_2_position.y] == null:
 		return
+	state = States.WAIT
 	var gem_1: Gem = gems[gem_1_position.x][gem_1_position.y]
 	var gem_2: Gem = gems[gem_2_position.x][gem_2_position.y]
 	gems[gem_1_position.x][gem_1_position.y] = gem_2
@@ -197,8 +203,7 @@ func count_matches(list: Array[Vector2]) -> void:
 		for v in list:
 			var matched_gem: Gem = gems[v.x][v.y]
 			matched_gem.matched = true
-		var destroy_timer: Timer = $DestroyTimer
-		destroy_timer.start()
+		($DestroyTimer as Timer).start()
 #endregion
 
 #region Supporting gameplay
@@ -225,8 +230,7 @@ func destroy_matches() -> void:
 				if check_gem.matched == true:
 					check_gem.queue_free()
 					gems[column][row] = null
-	var collapse_timer: Timer = $CollapseTimer
-	collapse_timer.start()
+	($CollapseTimer as Timer).start()
 
 func refill_columns() -> void:
 	for column in width:
@@ -238,4 +242,15 @@ func refill_columns() -> void:
 				new_gem.position = grid_to_pixel(column, row + 1)
 				new_gem.move(grid_to_pixel(column, row), Gem.Movement.FALL)
 				gems[column][row] = new_gem
+
+func check_for_additional_matches() -> void:
+	for column in width:
+		for row in height:
+			if gems[column][row] != null:
+				var check_gem: Gem = gems[column][row]
+				if match_at(Vector2(column, row), check_gem):
+					state = States.WAIT
+					find_matches()
+					return
+	state = States.PLAY
 #endregion
