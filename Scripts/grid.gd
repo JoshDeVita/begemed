@@ -44,6 +44,11 @@ func _on_destroy_timer_timeout() -> void:
 
 func _on_collapse_timer_timeout() -> void:
 	collapse_columns()
+	var refill_timer: Timer = $RefillTimer
+	refill_timer.start()
+	
+func _on_refill_timer_timeout() -> void:
+	refill_columns()
 #endregion
 
 #region Startup
@@ -222,4 +227,14 @@ func destroy_matches() -> void:
 					gems[column][row] = null
 	var collapse_timer: Timer = $CollapseTimer
 	collapse_timer.start()
+
+func refill_columns() -> void:
+	for column in width:
+		for row in height:
+			if gems[column][row] == null:
+				var random_gem: int = get_random_gem(all_gems)
+				var new_gem: Gem = all_gems[random_gem].instantiate()
+				add_child(new_gem)
+				new_gem.position = grid_to_pixel(column, row)
+				gems[column][row] = new_gem
 #endregion
