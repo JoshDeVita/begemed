@@ -246,7 +246,7 @@ func destroy_matches() -> void:
 			if gems[column][row] != null:
 				var check_gem: Gem = gems[column][row]
 				if check_gem.matched == true:
-					check_gem.queue_free()
+					check_gem.destroy()
 					gems[column][row] = null
 	($CollapseTimer as Timer).start()
 

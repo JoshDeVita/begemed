@@ -14,6 +14,11 @@ func _ready() -> void:
 	modulate = Color(1, 1, 1, 0)
 	fade_in()
 
+func destroy() -> void:
+	fade_out()
+	await get_tree().create_timer(0.5).timeout
+	queue_free()
+
 func move(target: Vector2, MoveType: Movement) -> void:
 	var tween: Tween = create_tween()
 	# below default values should never be used, just as backup
@@ -30,6 +35,11 @@ func move(target: Vector2, MoveType: Movement) -> void:
 			easing = Tween.EaseType.EASE_IN_OUT
 			duration = FALL_TIME
 	tween.tween_property(self, "position", target, duration).set_trans(transition).set_ease(easing)
+	tween.play()
+
+func fade_out() -> void:
+	var tween: Tween = create_tween()
+	tween.tween_property(self, "modulate", Color(1, 1, 1, 0), 0.25)
 	tween.play()
 
 func fade_in() -> void:
