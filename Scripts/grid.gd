@@ -1,218 +1,225 @@
 extends Node2D
 
-@export var Height: int
-@export var Width: int
-@export var XStart: int
-@export var YStart: int
-@export var Offset: int
+@export var height: int
+@export var width: int
+@export var x_start: int
+@export var y_start: int
+@export var offset: int
 
 #region Class variables
-enum Directions {West, East, North, South}
-var Direction: Dictionary[Directions, Vector2] = {
-	Directions.West: Vector2(-1, 0),
-	Directions.East: Vector2(1, 0),
-	Directions.North: Vector2(0, 1),
-	Directions.South: Vector2(0, -1),
+enum Directions {WEST, EAST, NORTH, SOUTH}
+var direction: Dictionary[Directions, Vector2] = {
+	Directions.WEST: Vector2(-1, 0),
+	Directions.EAST: Vector2(1, 0),
+	Directions.NORTH: Vector2(0, 1),
+	Directions.SOUTH: Vector2(0, -1),
 }
 
-var Gems: Array[Array]
-var AllGems: Array[PackedScene] = [
-	preload("res://Gems/blue_gem.tscn"),
-	preload("res://Gems/red_gem.tscn"),
-	preload("res://Gems/purple_gem.tscn"),
-	preload("res://Gems/yellow_gem.tscn"),
-	preload("res://Gems/white_gem.tscn"),
-	preload("res://Gems/green_gem.tscn")
+var gems: Array[Array]
+var all_gems: Array[PackedScene] = [
+	preload("res://gems/blue_gem.tscn"),
+	preload("res://gems/red_gem.tscn"),
+	preload("res://gems/purple_gem.tscn"),
+	preload("res://gems/yellow_gem.tscn"),
+	preload("res://gems/white_gem.tscn"),
+	preload("res://gems/green_gem.tscn"),
 ]
 
-var FirstMove: Vector2
-var SecondMove: Vector2
-var ActiveMove: bool
+var first_move: Vector2
+var second_move: Vector2
+var active_move: bool
 #endregion
 
 func _ready() -> void:
-	Gems = GenerateArray()
-	SpawnPieces()
+	gems = generate_array()
+	spawn_pieces()
 
+@warning_ignore("unused_parameter")
 func _process(delta: float) -> void:
-	ClickInput()
+	click_input()
+
+#region Connections
+func _on_destroy_timer_timeout() -> void:
+	destroy_matches()
+
+func _on_collapse_timer_timeout() -> void:
+	collapse_columns()
+#endregion
 
 #region Startup
-func SpawnPieces() -> void:
-	for Column in Width:
-		for Row in Height:
-			var GemList: Array[PackedScene] = AllGems.duplicate()
-			var RandomGem: int = GetRandomGem(GemList)
-			var NewGem: Gem = GemList[RandomGem].instantiate()
-			while MatchAt(Vector2(Column, Row), NewGem):
-				GemList.remove_at(RandomGem)
-				RandomGem = GetRandomGem(GemList)
-				NewGem = GemList[RandomGem].instantiate()
-			add_child(NewGem)
-			NewGem.position = GridToPixel(Column, Row)
-			Gems[Column][Row] = NewGem
+func spawn_pieces() -> void:
+	for column in width:
+		for row in height:
+			var gem_list: Array[PackedScene] = all_gems.duplicate()
+			var random_gem: int = get_random_gem(gem_list)
+			var new_gem: Gem = gem_list[random_gem].instantiate()
+			while match_at(Vector2(column, row), new_gem):
+				gem_list.remove_at(random_gem)
+				random_gem = get_random_gem(gem_list)
+				new_gem = gem_list[random_gem].instantiate()
+			add_child(new_gem)
+			new_gem.position = grid_to_pixel(column, row)
+			gems[column][row] = new_gem
 
-func GenerateArray() -> Array[Array]:
+func generate_array() -> Array[Array]:
 	var array: Array[Array]
-	for Column in Width:
+	for column in width:
 		array.append([])
-		for Row in Height:
-			array[Column].append(null)
+		for row in height:
+			array[column].append(null)
 	return array
 #endregion
 
-func GetRandomGem(List: Array) -> int:
-	return randi() % List.size()
-
 #region Coordinates
-func GridToPixel(Column: int, Row: int) -> Vector2:
-	var NewX: int = XStart + (Offset * Column)
-	var NewY: int = YStart + (-Offset * Row)
-	return Vector2(NewX, NewY)
+func grid_to_pixel(column: int, row: int) -> Vector2:
+	var new_x: int = x_start + (offset * column)
+	var new_y: int = y_start + (-offset * row)
+	return Vector2(new_x, new_y)
 
-func PixelToGrid(Vector: Vector2) -> Vector2:
-	var NewX: int = round((Vector.x - XStart) / Offset)
-	var NewY: int = round((Vector.y - YStart) / -Offset)
-	return Vector2(NewX, NewY)
+func pixel_to_grid(Vector: Vector2) -> Vector2:
+	var new_x: int = round((Vector.x - x_start) / offset)
+	var new_y: int = round((Vector.y - y_start) / -offset)
+	return Vector2(new_x, new_y)
 
-func IsInBounds(Position:Vector2) -> bool:
-	if Position.x >= 0 and Position.y >= 0 and Position.x < Width and Position.y < Height:
+func is_in_bounds(location:Vector2) -> bool:
+	if location.x >= 0 and location.y >= 0 and location.x < width and location.y < height:
 		return true
 	return false
 
-func ClickInput() -> void:
-	if ActiveMove == false and Input.is_action_just_pressed("ui_left_click"):
-		StartMove()
-	elif ActiveMove == true and Input.is_action_just_pressed("ui_left_click"):
-		FinishMove()
-	#if ActiveMove == true and Input.is_action_just_released("ui_left_click"):
+func click_input() -> void:
+	if active_move == false and Input.is_action_just_pressed("ui_left_click"):
+		start_move()
+	elif active_move == true and Input.is_action_just_pressed("ui_left_click"):
+		finish_move()
+	#if active_move == true and Input.is_action_just_released("ui_left_click"):
 		#FinishMove()
 #endregion
 
 #region Swapping
-func StartMove() -> void:
-	var GridPosition: Vector2
-	FirstMove = get_global_mouse_position()
-	GridPosition = PixelToGrid(FirstMove)
-	if IsInBounds(GridPosition):
-		ActiveMove = true
+func start_move() -> void:
+	var grid_position: Vector2
+	first_move = get_global_mouse_position()
+	grid_position = pixel_to_grid(first_move)
+	if is_in_bounds(grid_position):
+		active_move = true
 	else:
-		ActiveMove = false
+		active_move = false
 
-func FinishMove() -> void:
-	var GridPosition: Vector2
-	SecondMove = get_global_mouse_position()
-	GridPosition = PixelToGrid(SecondMove)
-	if ActiveMove and IsInBounds(GridPosition) and GridPosition != PixelToGrid(FirstMove):
-		AttemptSwap(PixelToGrid(FirstMove), GridPosition)
-	ActiveMove = false
+func finish_move() -> void:
+	var grid_position: Vector2
+	second_move = get_global_mouse_position()
+	grid_position = pixel_to_grid(second_move)
+	if active_move and is_in_bounds(grid_position) and grid_position != pixel_to_grid(first_move):
+		attempt_swap(pixel_to_grid(first_move), grid_position)
+	active_move = false
 
-func AttemptSwap(GridPosition1: Vector2, GridPosition2: Vector2) -> void:
-	var Delta: Vector2 = GridPosition2 - GridPosition1
-	if abs(Delta.x) > abs(Delta.y):
-		if Delta.x == 1:
-			Swap(GridPosition1, Direction[Directions.East])
-		elif Delta.x == -1:
-			Swap(GridPosition1, Direction[Directions.West])
-	elif abs(Delta.y) > abs(Delta.x):
-		if Delta.y == 1:
-			Swap(GridPosition1, Direction[Directions.North])
-		elif Delta.y == -1:
-			Swap(GridPosition1, Direction[Directions.South])
+func attempt_swap(grid_position_1: Vector2, grid_position_2: Vector2) -> void:
+	var delta: Vector2 = grid_position_2 - grid_position_1
+	if abs(delta.x) > abs(delta.y):
+		if delta.x == 1:
+			swap(grid_position_1, direction[Directions.EAST])
+		elif delta.x == -1:
+			swap(grid_position_1, direction[Directions.WEST])
+	elif abs(delta.y) > abs(delta.x):
+		if delta.y == 1:
+			swap(grid_position_1, direction[Directions.NORTH])
+		elif delta.y == -1:
+			swap(grid_position_1, direction[Directions.SOUTH])
 
-func Swap(Position: Vector2, Direction: Vector2) -> void:
-	var Gem1Position: Vector2 = Vector2(Position.x, Position.y)
-	var Gem2Position: Vector2 = Vector2(Position.x + Direction.x, Position.y + Direction.y)
-	if Gems[Gem1Position.x][Gem1Position.y] == null || Gems[Gem2Position.x][Gem2Position.y] == null:
+func swap(location: Vector2, path: Vector2) -> void:
+	var gem_1_position: Vector2 = Vector2(location.x, location.y)
+	var gem_2_position: Vector2 = Vector2(location.x + path.x, location.y + path.y)
+	if gems[gem_1_position.x][gem_1_position.y] == null || gems[gem_2_position.x][gem_2_position.y] == null:
 		return
-	var Gem1: Gem = Gems[Gem1Position.x][Gem1Position.y]
-	var Gem2: Gem = Gems[Gem2Position.x][Gem2Position.y]
-	Gems[Gem1Position.x][Gem1Position.y] = Gem2
-	Gems[Gem2Position.x][Gem2Position.y] = Gem1
-	Gem1.Move(GridToPixel(Gem2Position.x, Gem2Position.y), Gem.Movement.Swap)
-	Gem2.Move(GridToPixel(Gem1Position.x, Gem1Position.y), Gem.Movement.Swap)
-	FindMatches()
+	var gem_1: Gem = gems[gem_1_position.x][gem_1_position.y]
+	var gem_2: Gem = gems[gem_2_position.x][gem_2_position.y]
+	gems[gem_1_position.x][gem_1_position.y] = gem_2
+	gems[gem_2_position.x][gem_2_position.y] = gem_1
+	@warning_ignore("narrowing_conversion")
+	gem_1.move(grid_to_pixel(gem_2_position.x, gem_2_position.y), Gem.Movement.SWAP)
+	@warning_ignore("narrowing_conversion")
+	gem_2.move(grid_to_pixel(gem_1_position.x, gem_1_position.y), Gem.Movement.SWAP)
+	find_matches()
 #endregion
 
 #region Matches
-func FindMatches() -> void:
-	for Column in Width:
-		for Row in Height:
-			var Position: Vector2 = Vector2(Column, Row)
-			if Gems[Position.x][Position.y] != null:
-				var CheckGem: Gem = Gems[Position.x][Position.y]
-				if CheckGem.Matched == false:
-					var MatchList: Array[Vector2] = [Position]
-					MatchList.append_array(GetMatchesInDirection(Position, Direction[Directions.East], CheckGem))
-					MatchList.append_array(GetMatchesInDirection(Position, Direction[Directions.West], CheckGem))
-					CountMatches(MatchList)
-					MatchList = [Position]
-					MatchList.append_array(GetMatchesInDirection(Position, Direction[Directions.North], CheckGem))
-					MatchList.append_array(GetMatchesInDirection(Position, Direction[Directions.South], CheckGem))
-					CountMatches(MatchList)
+func find_matches() -> void:
+	for column in width:
+		for row in height:
+			var location: Vector2 = Vector2(column, row)
+			if gems[location.x][location.y] != null:
+				var check_gem: Gem = gems[location.x][location.y]
+				if check_gem.matched == false:
+					var match_list: Array[Vector2] = [location]
+					match_list.append_array(get_matches_in_direction(location, direction[Directions.EAST], check_gem))
+					match_list.append_array(get_matches_in_direction(location, direction[Directions.WEST], check_gem))
+					count_matches(match_list)
+					match_list = [location]
+					match_list.append_array(get_matches_in_direction(location, direction[Directions.NORTH], check_gem))
+					match_list.append_array(get_matches_in_direction(location, direction[Directions.SOUTH], check_gem))
+					count_matches(match_list)
 
-func MatchAt(Position: Vector2, CheckGem: Gem) -> bool:
-	var MatchList: Array[Vector2] = [Position]
-	MatchList.append_array(GetMatchesInDirection(Position, Direction[Directions.East], CheckGem))
-	MatchList.append_array(GetMatchesInDirection(Position, Direction[Directions.West], CheckGem))
-	if MatchList.size() >= 3:
+func match_at(location: Vector2, check_gem: Gem) -> bool:
+	var match_list: Array[Vector2] = [location]
+	match_list.append_array(get_matches_in_direction(location, direction[Directions.EAST], check_gem))
+	match_list.append_array(get_matches_in_direction(location, direction[Directions.WEST], check_gem))
+	if match_list.size() >= 3:
 		return true
-	MatchList = [Position]
-	MatchList.append_array(GetMatchesInDirection(Position, Direction[Directions.North], CheckGem))
-	MatchList.append_array(GetMatchesInDirection(Position, Direction[Directions.South], CheckGem))
-	if MatchList.size() >= 3:
+	match_list = [location]
+	match_list.append_array(get_matches_in_direction(location, direction[Directions.NORTH], check_gem))
+	match_list.append_array(get_matches_in_direction(location, direction[Directions.SOUTH], check_gem))
+	if match_list.size() >= 3:
 		return true
 	return false
 
-func GetMatchesInDirection(Position: Vector2, Direction: Vector2, InputGem: Gem) -> Array[Vector2]:
-	var List: Array[Vector2] = []
-	var CheckPosition: Vector2 = Vector2(Position.x, Position.y)
-	var CheckGem: Gem = InputGem.duplicate()
-	var GemColor: Gem.Type = CheckGem.GemColor
-	while CheckGem.GemColor == GemColor and IsInBounds(CheckPosition) :
-		CheckPosition += Direction
-		if IsInBounds(CheckPosition) and Gems[CheckPosition.x][CheckPosition.y] != null:
-			CheckGem = Gems[CheckPosition.x][CheckPosition.y]
-			if CheckGem.GemColor == GemColor:
-				List.append(CheckPosition)
+func get_matches_in_direction(location: Vector2, path: Vector2, input_gem: Gem) -> Array[Vector2]:
+	var list: Array[Vector2] = []
+	var check_position: Vector2 = Vector2(location.x, location.y)
+	var check_gem: Gem = input_gem.duplicate()
+	var gem_color: Gem.Type = check_gem.gem_color
+	while check_gem.gem_color == gem_color and is_in_bounds(check_position) :
+		check_position += path
+		if is_in_bounds(check_position) and gems[check_position.x][check_position.y] != null:
+			check_gem = gems[check_position.x][check_position.y]
+			if check_gem.gem_color == gem_color:
+				list.append(check_position)
 		else:
-			return List
-	return List
+			return list
+	return list
 
-func CountMatches(List: Array[Vector2]) -> void:
-	if List.size() >= 3:
-		for v in List:
-			var MatchedGem: Gem = Gems[v.x][v.y]
-			MatchedGem.Matched = true
-		var DestroyTimer: Timer = $DestroyTimer
-		DestroyTimer.start()
-
-func DestroyMatches() -> void:
-	for Column in Width:
-		for Row in Height:
-			if Gems[Column][Row] != null:
-				var CheckGem: Gem = Gems[Column][Row]
-				if CheckGem.Matched == true:
-					CheckGem.queue_free()
-					Gems[Column][Row] = null
-	var CollapseTimer: Timer = $CollapseTimer
-	CollapseTimer.start()
+func count_matches(list: Array[Vector2]) -> void:
+	if list.size() >= 3:
+		for v in list:
+			var matched_gem: Gem = gems[v.x][v.y]
+			matched_gem.matched = true
+		var destroy_timer: Timer = $DestroyTimer
+		destroy_timer.start()
 #endregion
 
-func CollapseColumns() -> void:
-	for Column in Width:
-		for Row in Height:
-			if Gems[Column][Row] == null:
-				for RowAbove in range(Row + 1, Height):
-					if Gems[Column][RowAbove] != null:
-						var FallingGem: Gem = Gems[Column][RowAbove]
-						FallingGem.Move(GridToPixel(Column, Row), Gem.Movement.Fall)
-						Gems[Column][Row] = Gems[Column][RowAbove]
-						Gems[Column][RowAbove] = null
+#region Supporting gameplay
+func get_random_gem(list: Array) -> int:
+	return randi() % list.size()
+
+func collapse_columns() -> void:
+	for column in width:
+		for row in height:
+			if gems[column][row] == null:
+				for row_above in range(row + 1, height):
+					if gems[column][row_above] != null:
+						var FallingGem: Gem = gems[column][row_above]
+						FallingGem.move(grid_to_pixel(column, row), Gem.Movement.FALL)
+						gems[column][row] = gems[column][row_above]
+						gems[column][row_above] = null
 						break
 
-func _on_destroy_timer_timeout() -> void:
-	DestroyMatches()
-
-func _on_collapse_timer_timeout() -> void:
-	CollapseColumns()
+func destroy_matches() -> void:
+	for column in width:
+		for row in height:
+			if gems[column][row] != null:
+				var check_gem: Gem = gems[column][row]
+				if check_gem.matched == true:
+					check_gem.queue_free()
+					gems[column][row] = null
+	var collapse_timer: Timer = $CollapseTimer
+	collapse_timer.start()
+#endregion

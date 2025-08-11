@@ -6,11 +6,11 @@
 
 [node name="Grid" type="Node2D" parent="."]
 script = ExtResource("1_80nbo")
-Height = 15
-Width = 15
-XStart = 300
-YStart = 580
-Offset = 32
+height = 15
+width = 15
+x_start = 300
+y_start = 580
+offset = 32
 
 [node name="DestroyTimer" type="Timer" parent="Grid"]
 wait_time = 0.5

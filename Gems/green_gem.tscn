@@ -1,10 +1,10 @@
 [gd_scene load_steps=3 format=3 uid="uid://bp5asfrftl0le"]
 
 [ext_resource type="PackedScene" uid="uid://cana6uy438b3a" path="res://Gems/gem.tscn" id="1_5yxhh"]
-[ext_resource type="Texture2D" uid="uid://bb6f0sd7o5uxs" path="res://Assets/Green Gem.png" id="2_8ll14"]
+[ext_resource type="Texture2D" uid="uid://bb6f0sd7o5uxs" path="res://Assets/green_gem.png" id="2_8ll14"]
 
 [node name="GreenGem" instance=ExtResource("1_5yxhh")]
-GemColor = 6
+gem_color = 6
 
 [node name="Sprite2D" parent="." index="0"]
 texture = ExtResource("2_8ll14")
