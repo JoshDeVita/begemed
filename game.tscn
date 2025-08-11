@@ -11,3 +11,8 @@ Width = 15
 XStart = 300
 YStart = 580
 Offset = 32
+
+[node name="DestroyTimer" type="Timer" parent="Grid"]
+wait_time = 0.5
+
+[connection signal="timeout" from="Grid/DestroyTimer" to="Grid" method="_on_destroy_timer_timeout"]

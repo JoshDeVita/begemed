@@ -76,16 +76,16 @@ func PixelToGrid(Vector: Vector2) -> Vector2:
 	return Vector2(NewX, NewY)
 
 func IsInBounds(Position:Vector2) -> bool:
-	if Position.x >= 0 && Position.y >= 0 && Position.x < Width && Position.y < Height:
+	if Position.x >= 0 and Position.y >= 0 and Position.x < Width and Position.y < Height:
 		return true
 	return false
 
 func ClickInput() -> void:
-	if ActiveMove == false && Input.is_action_just_pressed("ui_left_click"):
+	if ActiveMove == false and Input.is_action_just_pressed("ui_left_click"):
 		StartMove()
-	elif ActiveMove == true && Input.is_action_just_pressed("ui_left_click"):
+	elif ActiveMove == true and Input.is_action_just_pressed("ui_left_click"):
 		FinishMove()
-	#if ActiveMove == true && Input.is_action_just_released("ui_left_click"):
+	#if ActiveMove == true and Input.is_action_just_released("ui_left_click"):
 		#FinishMove()
 #endregion
 
@@ -103,7 +103,7 @@ func FinishMove() -> void:
 	var GridPosition: Vector2
 	SecondMove = get_global_mouse_position()
 	GridPosition = PixelToGrid(SecondMove)
-	if ActiveMove && IsInBounds(GridPosition) && GridPosition != PixelToGrid(FirstMove):
+	if ActiveMove and IsInBounds(GridPosition) and GridPosition != PixelToGrid(FirstMove):
 		AttemptSwap(PixelToGrid(FirstMove), GridPosition)
 	ActiveMove = false
 
@@ -123,6 +123,8 @@ func AttemptSwap(GridPosition1: Vector2, GridPosition2: Vector2) -> void:
 func Swap(Position: Vector2, Direction: Vector2) -> void:
 	var Gem1Position: Vector2 = Vector2(Position.x, Position.y)
 	var Gem2Position: Vector2 = Vector2(Position.x + Direction.x, Position.y + Direction.y)
+	if Gems[Gem1Position.x][Gem1Position.y] == null || Gems[Gem2Position.x][Gem2Position.y] == null:
+		return
 	var Gem1: Gem = Gems[Gem1Position.x][Gem1Position.y]
 	var Gem2: Gem = Gems[Gem2Position.x][Gem2Position.y]
 	Gems[Gem1Position.x][Gem1Position.y] = Gem2
@@ -167,18 +169,34 @@ func GetMatchesInDirection(Position: Vector2, Direction: Vector2, InputGem: Gem)
 	var CheckPosition: Vector2 = Vector2(Position.x, Position.y)
 	var CheckGem: Gem = InputGem.duplicate()
 	var GemColor: Gem.Type = CheckGem.GemColor
-	while CheckGem.GemColor == GemColor && IsInBounds(CheckPosition) :
+	while CheckGem.GemColor == GemColor and IsInBounds(CheckPosition) :
 		CheckPosition += Direction
-		if IsInBounds(CheckPosition) && Gems[CheckPosition.x][CheckPosition.y] != null:
+		if IsInBounds(CheckPosition) and Gems[CheckPosition.x][CheckPosition.y] != null:
 			CheckGem = Gems[CheckPosition.x][CheckPosition.y]
 			if CheckGem.GemColor == GemColor:
 				List.append(CheckPosition)
+		else:
+			return List
 	return List
 
 func CountMatches(List: Array[Vector2]) -> void:
 	if List.size() >= 3:
 		for v in List:
 			var MatchedGem: Gem = Gems[v.x][v.y]
-			MatchedGem.Matched == true
-			MatchedGem.Dim()
+			MatchedGem.Matched = true
+			var DestroyTimer: Timer = $DestroyTimer
+			DestroyTimer.start()
+
+func DestroyMatches() -> void:
+	for Column in Width:
+		for Row in Height:
+			if Gems[Column][Row] != null:
+				var CheckGem: Gem = Gems[Column][Row]
+				if CheckGem.Matched == true:
+					CheckGem.queue_free()
+					Gems[Column][Row] = null
 #endregion
+
+
+func _on_destroy_timer_timeout() -> void:
+	DestroyMatches()
