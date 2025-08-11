@@ -129,8 +129,8 @@ func Swap(Position: Vector2, Direction: Vector2) -> void:
 	var Gem2: Gem = Gems[Gem2Position.x][Gem2Position.y]
 	Gems[Gem1Position.x][Gem1Position.y] = Gem2
 	Gems[Gem2Position.x][Gem2Position.y] = Gem1
-	Gem1.Move(GridToPixel(Gem2Position.x, Gem2Position.y))
-	Gem2.Move(GridToPixel(Gem1Position.x, Gem1Position.y))
+	Gem1.Move(GridToPixel(Gem2Position.x, Gem2Position.y), Gem.Movement.Swap)
+	Gem2.Move(GridToPixel(Gem1Position.x, Gem1Position.y), Gem.Movement.Swap)
 	FindMatches()
 #endregion
 
@@ -184,8 +184,8 @@ func CountMatches(List: Array[Vector2]) -> void:
 		for v in List:
 			var MatchedGem: Gem = Gems[v.x][v.y]
 			MatchedGem.Matched = true
-			var DestroyTimer: Timer = $DestroyTimer
-			DestroyTimer.start()
+		var DestroyTimer: Timer = $DestroyTimer
+		DestroyTimer.start()
 
 func DestroyMatches() -> void:
 	for Column in Width:
@@ -195,8 +195,24 @@ func DestroyMatches() -> void:
 				if CheckGem.Matched == true:
 					CheckGem.queue_free()
 					Gems[Column][Row] = null
+	var CollapseTimer: Timer = $CollapseTimer
+	CollapseTimer.start()
 #endregion
 
+func CollapseColumns() -> void:
+	for Column in Width:
+		for Row in Height:
+			if Gems[Column][Row] == null:
+				for RowAbove in range(Row + 1, Height):
+					if Gems[Column][RowAbove] != null:
+						var FallingGem: Gem = Gems[Column][RowAbove]
+						FallingGem.Move(GridToPixel(Column, Row), Gem.Movement.Fall)
+						Gems[Column][Row] = Gems[Column][RowAbove]
+						Gems[Column][RowAbove] = null
+						break
 
 func _on_destroy_timer_timeout() -> void:
 	DestroyMatches()
+
+func _on_collapse_timer_timeout() -> void:
+	CollapseColumns()

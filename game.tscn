@@ -14,5 +14,11 @@ Offset = 32
 
 [node name="DestroyTimer" type="Timer" parent="Grid"]
 wait_time = 0.5
+one_shot = true
+
+[node name="CollapseTimer" type="Timer" parent="Grid"]
+wait_time = 0.1
+one_shot = true
 
 [connection signal="timeout" from="Grid/DestroyTimer" to="Grid" method="_on_destroy_timer_timeout"]
+[connection signal="timeout" from="Grid/CollapseTimer" to="Grid" method="_on_collapse_timer_timeout"]
