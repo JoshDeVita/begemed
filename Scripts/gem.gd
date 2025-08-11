@@ -6,6 +6,10 @@ enum Movement {SWAP, FALL}
 @export var gem_color: Type
 var matched: bool = false
 
+func _ready() -> void:
+	modulate = Color(1, 1, 1, 0)
+	fade_in()
+
 func move(target: Vector2, MoveType: Movement) -> void:
 	var tween: Tween = create_tween()
 	var transition: Tween.TransitionType = Tween.TransitionType.TRANS_SINE
@@ -21,4 +25,9 @@ func move(target: Vector2, MoveType: Movement) -> void:
 			easing = Tween.EaseType.EASE_IN_OUT
 			duration = .45
 	tween.tween_property(self, "position", target, duration).set_trans(transition).set_ease(easing)
+	tween.play()
+
+func fade_in() -> void:
+	var tween: Tween = create_tween()
+	tween.tween_property(self, "modulate", Color(1, 1, 1, 1), 0.5)
 	tween.play()

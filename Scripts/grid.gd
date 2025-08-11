@@ -235,6 +235,7 @@ func refill_columns() -> void:
 				var random_gem: int = get_random_gem(all_gems)
 				var new_gem: Gem = all_gems[random_gem].instantiate()
 				add_child(new_gem)
-				new_gem.position = grid_to_pixel(column, row)
+				new_gem.position = grid_to_pixel(column, row + 1)
+				new_gem.move(grid_to_pixel(column, row), Gem.Movement.FALL)
 				gems[column][row] = new_gem
 #endregion
