@@ -34,9 +34,11 @@ var active_move: bool
 #endregion
 
 func _ready() -> void:
-	state = States.PLAY
 	gems = generate_array()
 	spawn_pieces()
+	while not valid_play_exists():
+		spawn_pieces()
+	state = States.PLAY
 
 @warning_ignore("unused_parameter")
 func _process(delta: float) -> void:
@@ -53,8 +55,12 @@ func _on_collapse_timer_timeout() -> void:
 	
 func _on_refill_timer_timeout() -> void:
 	refill_columns()
-	if find_matches() == false:
-		state = States.PLAY
+	var destroy_matches: bool = true
+	if find_matches(destroy_matches) == false:
+		if valid_play_exists():
+			state = States.PLAY
+		else:
+			print("Game Over")
 #endregion
 
 #region Startup
@@ -137,36 +143,54 @@ func attempt_swap(grid_position_1: Vector2, grid_position_2: Vector2) -> void:
 		elif delta.y == -1:
 			swap(grid_position_1, direction[Directions.SOUTH])
 
-func move(location: Vector2, path: Vector2) -> void:
+func is_valid_move(location: Vector2, path: Vector2) -> bool:
 	var gem_1_position: Vector2 = Vector2(location.x, location.y)
 	var gem_2_position: Vector2 = Vector2(location.x + path.x, location.y + path.y)
-	if gems[gem_1_position.x][gem_1_position.y] == null || gems[gem_2_position.x][gem_2_position.y] == null:
-		return
-	state = States.WAIT
+	if not is_in_bounds(gem_1_position) or not is_in_bounds(gem_2_position):
+		return false
+	if gems[gem_1_position.x][gem_1_position.y] == null or gems[gem_2_position.x][gem_2_position.y] == null:
+		return false
+	return true
+
+func move_grid(location: Vector2, path: Vector2) -> void:
+	var gem_1_position: Vector2 = Vector2(location.x, location.y)
+	var gem_2_position: Vector2 = Vector2(location.x + path.x, location.y + path.y)
 	var gem_1: Gem = gems[gem_1_position.x][gem_1_position.y]
 	var gem_2: Gem = gems[gem_2_position.x][gem_2_position.y]
 	gems[gem_1_position.x][gem_1_position.y] = gem_2
 	gems[gem_2_position.x][gem_2_position.y] = gem_1
+	
+func move_pixel(location: Vector2, path: Vector2) -> void:
+	var gem_1_position: Vector2 = Vector2(location.x, location.y)
+	var gem_2_position: Vector2 = Vector2(location.x + path.x, location.y + path.y)
+	var gem_1: Gem = gems[gem_1_position.x][gem_1_position.y]
+	var gem_2: Gem = gems[gem_2_position.x][gem_2_position.y]
 	@warning_ignore("narrowing_conversion")
-	gem_1.move(grid_to_pixel(gem_2_position.x, gem_2_position.y), Gem.Movement.SWAP)
+	gem_1.move(grid_to_pixel(gem_1_position.x, gem_1_position.y), Gem.Movement.SWAP)
 	@warning_ignore("narrowing_conversion")
-	gem_2.move(grid_to_pixel(gem_1_position.x, gem_1_position.y), Gem.Movement.SWAP)
+	gem_2.move(grid_to_pixel(gem_2_position.x, gem_2_position.y), Gem.Movement.SWAP)
 
 func swap(location: Vector2, path: Vector2) -> void:
-	move(location, path)
-	if find_matches() == false:
+	if not is_valid_move(location, path):
+		return
+	state = States.WAIT
+	move_grid(location, path)
+	move_pixel(location, path)
+	var destroy_matches: bool = true
+	if find_matches(destroy_matches) == false:
 		swap_back(location, path)
 
 func swap_back(location: Vector2, path: Vector2) -> void:
 	var swap_back_buffer: float = 0.1
 	await get_tree().create_timer(Gem.SWAP_TIME + swap_back_buffer).timeout
-	move(location, path)
+	move_grid(location, path)
+	move_pixel(location, path)
 	state = States.PLAY
 #endregion
 
 #region Matches
 ## Returns whether a match was found & destroys matched gems
-func find_matches() -> bool:
+func find_matches(destroy_matches: bool) -> bool:
 	var match_found: bool = false
 	for column in width:
 		for row in height:
@@ -179,13 +203,15 @@ func find_matches() -> bool:
 					match_list.append_array(get_matches_in_direction(location, direction[Directions.WEST], check_gem))
 					if match_list.size() >= 3:
 						match_found = true
-						destroy_gems(match_list)
+						if destroy_matches:
+							destroy_gems(match_list)
 					match_list = [location]
 					match_list.append_array(get_matches_in_direction(location, direction[Directions.NORTH], check_gem))
 					match_list.append_array(get_matches_in_direction(location, direction[Directions.SOUTH], check_gem))
 					if match_list.size() >= 3:
 						match_found = true
-						destroy_gems(match_list)
+						if destroy_matches:
+							destroy_gems(match_list)
 	return match_found
 	
 
@@ -222,6 +248,23 @@ func destroy_gems(list: Array[Vector2]) -> void:
 		var matched_gem: Gem = gems[v.x][v.y]
 		matched_gem.matched = true
 	($DestroyTimer as Timer).start()
+
+func valid_play_exists() -> bool:
+	var destroy_matches: bool = false
+	for column in width:
+		for row in height:
+			var location: Vector2 = Vector2(column, row)
+			for current_direction in direction:
+				var valid_play_found: bool = false
+				if not is_valid_move(location, direction[current_direction]):
+					continue
+				move_grid(location, direction[current_direction])
+				if find_matches(destroy_matches) == true:
+					valid_play_found = true
+				move_grid(location, direction[current_direction])
+				if valid_play_found:
+					return true
+	return false
 #endregion
 
 #region Supporting gameplay
