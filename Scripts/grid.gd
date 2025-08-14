@@ -31,6 +31,13 @@ var all_gems: Array[PackedScene] = [
 var first_move: Vector2
 var second_move: Vector2
 var active_move: bool
+
+signal update_score(score_add: int)
+var streak: int = 1
+var pending_score: int = 0
+const STREAK_MULTIPLIER: float = 0.2
+const FOUR_OF_A_KIND_MULTIPLIER: float = 1.2
+const FIVE_OF_A_KIND_MULTIPLIER: float = 1.5
 #endregion
 
 func _ready() -> void:
@@ -47,6 +54,9 @@ func _process(delta: float) -> void:
 
 #region Connections
 func _on_destroy_timer_timeout() -> void:
+	update_score.emit(pending_score)
+	pending_score = 0
+	streak += 1
 	destroy_matches()
 
 func _on_collapse_timer_timeout() -> void:
@@ -57,6 +67,7 @@ func _on_refill_timer_timeout() -> void:
 	refill_columns()
 	if find_matches() == false:
 		if valid_play_exists():
+			streak = 0
 			state = States.PLAY
 		else:
 			print("Game Over")
@@ -201,12 +212,14 @@ func find_matches() -> bool:
 					match_list.append_array(get_matches_in_direction(location, direction[Directions.WEST], check_gem))
 					if match_list.size() >= 3:
 						match_found = true
+						calculate_score(match_list.size())
 						destroy_gems(match_list)
 					match_list = [location]
 					match_list.append_array(get_matches_in_direction(location, direction[Directions.NORTH], check_gem))
 					match_list.append_array(get_matches_in_direction(location, direction[Directions.SOUTH], check_gem))
 					if match_list.size() >= 3:
 						match_found = true
+						calculate_score(match_list.size())
 						destroy_gems(match_list)
 	return match_found
 
@@ -303,4 +316,15 @@ func refill_columns() -> void:
 				new_gem.position = grid_to_pixel(column, row + 1)
 				new_gem.move(grid_to_pixel(column, row), Gem.Movement.FALL)
 				gems[column][row] = new_gem
+#endregion
+
+#region Score
+func calculate_score(gems_matched: int) -> void:
+	match gems_matched:
+		3:
+			pending_score += (Gem.SCORE_VALUE * gems_matched) *  (1 + (STREAK_MULTIPLIER * streak))
+		4:
+			pending_score += ((Gem.SCORE_VALUE * gems_matched) * (1 + (STREAK_MULTIPLIER * streak))) * FOUR_OF_A_KIND_MULTIPLIER
+		5:
+			pending_score += ((Gem.SCORE_VALUE * gems_matched) * (1 + (STREAK_MULTIPLIER * streak))) * FIVE_OF_A_KIND_MULTIPLIER
 #endregion
