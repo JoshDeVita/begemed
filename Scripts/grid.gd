@@ -33,7 +33,7 @@ var second_move: Vector2
 var active_move: bool
 
 signal update_score(score_add: int)
-var streak: int = 1
+var streak: int = 0
 var pending_score: int = 0
 const STREAK_MULTIPLIER: float = 0.5
 const FOUR_OF_A_KIND_MULTIPLIER: float = 1.5
