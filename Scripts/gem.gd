@@ -1,7 +1,7 @@
 class_name Gem
 extends Node2D
 
-const SCORE_VALUE: int = 10
+const SCORE_VALUE: int = 2
 
 enum Type {NULL, BLUE, RED, PURPLE, YELLOW, WHITE, GREEN}
 enum Movement {SWAP, FALL}
