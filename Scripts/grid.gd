@@ -27,6 +27,8 @@ var all_gems: Array[PackedScene] = [
 	preload("res://gems/white_gem.tscn"),
 	preload("res://gems/green_gem.tscn"),
 ]
+var selected_shader_package: PackedScene = preload("res://Shaders/selected_shader.tscn")
+@onready var selected_shader: Node = selected_shader_package.instantiate()
 
 var first_move: Vector2
 var second_move: Vector2
@@ -117,6 +119,7 @@ func click_input() -> void:
 	if active_move == false and Input.is_action_just_pressed("ui_left_click"):
 		start_move()
 	elif active_move == true and Input.is_action_just_pressed("ui_left_click"):
+		disable_selected_shader()
 		finish_move()
 	#if active_move == true and Input.is_action_just_released("ui_left_click"):
 		#FinishMove()
@@ -128,6 +131,7 @@ func start_move() -> void:
 	first_move = get_global_mouse_position()
 	grid_position = pixel_to_grid(first_move)
 	if is_in_bounds(grid_position):
+		enable_selected_shader()
 		active_move = true
 	else:
 		active_move = false
@@ -327,4 +331,18 @@ func calculate_score(gems_matched: int) -> void:
 			pending_score += ((Gem.SCORE_VALUE * gems_matched) * (1 + (STREAK_MULTIPLIER * streak))) * FOUR_OF_A_KIND_MULTIPLIER
 		5:
 			pending_score += ((Gem.SCORE_VALUE * gems_matched) * (1 + (STREAK_MULTIPLIER * streak))) * FIVE_OF_A_KIND_MULTIPLIER
+#endregion
+
+#region Shaders
+func disable_selected_shader() -> void:
+	var grid_position: Vector2 = pixel_to_grid(first_move)
+	var gem: Gem = gems[grid_position.x][grid_position.y]
+	for child in gem.get_node("Sprite2D").get_children():
+		if child is ColorRect:
+				gem.get_node("Sprite2D").remove_child(child)
+
+func enable_selected_shader() -> void:
+	var grid_position: Vector2 = pixel_to_grid(first_move)
+	var gem: Gem = gems[grid_position.x][grid_position.y]
+	gem.get_node("Sprite2D").add_child(selected_shader_package.instantiate())
 #endregion

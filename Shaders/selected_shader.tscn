@@ -1,0 +1,23 @@
+[gd_scene load_steps=3 format=3 uid="uid://drrlu2avm8bn2"]
+
+[ext_resource type="Shader" uid="uid://c6pq6xo7jamxw" path="res://Shaders/gem.gdshader" id="1_acc6l"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_g4mvs"]
+shader = ExtResource("1_acc6l")
+shader_parameter/Line_Smoothness = 0.1
+shader_parameter/Line_Width = 0.2
+shader_parameter/Brightness = 10.0
+shader_parameter/Rotation_deg = 23.0
+shader_parameter/Distortion = 1.0
+shader_parameter/Speed = 1.5
+shader_parameter/Position = 0.0
+shader_parameter/Position_Min = 0.25
+shader_parameter/Position_Max = 0.5
+shader_parameter/Alpha = 0.8
+
+[node name="selected_shader" type="ColorRect"]
+material = SubResource("ShaderMaterial_g4mvs")
+offset_left = -8.0
+offset_top = -8.0
+offset_right = 8.0
+offset_bottom = 8.0
