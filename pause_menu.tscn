@@ -1,0 +1,37 @@
+[gd_scene load_steps=3 format=3 uid="uid://cpapo5tckx4j1"]
+
+[ext_resource type="Script" uid="uid://di5olam8nw5bc" path="res://Scripts/pause_menu.gd" id="1_nwcfo"]
+[ext_resource type="Theme" uid="uid://cgaseahobhdcj" path="res://Themes/theme.tres" id="2_05uyy"]
+
+[node name="PauseMenu" type="CenterContainer"]
+process_mode = 2
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_nwcfo")
+
+[node name="PanelContainer" type="PanelContainer" parent="."]
+layout_mode = 2
+theme = ExtResource("2_05uyy")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer"]
+layout_mode = 2
+
+[node name="MainMenuLabel" type="Label" parent="PanelContainer/VBoxContainer"]
+layout_mode = 2
+text = "Main Menu"
+horizontal_alignment = 1
+
+[node name="ContinueButton" type="Button" parent="PanelContainer/VBoxContainer"]
+layout_mode = 2
+text = "Resume"
+
+[node name="QuitButton" type="Button" parent="PanelContainer/VBoxContainer"]
+layout_mode = 2
+theme_type_variation = &"QuitButton"
+text = "Exit"
+
+[connection signal="pressed" from="PanelContainer/VBoxContainer/ContinueButton" to="." method="_on_continue_button_pressed"]
+[connection signal="pressed" from="PanelContainer/VBoxContainer/QuitButton" to="." method="_on_quit_button_pressed"]

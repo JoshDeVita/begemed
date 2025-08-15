@@ -49,10 +49,18 @@ func _ready() -> void:
 		spawn_pieces()
 	state = States.PLAY
 
-@warning_ignore("unused_parameter")
-func _process(delta: float) -> void:
-	if state == States.PLAY:
+func _input(event: InputEvent) -> void:
+	if event.is_action_pressed("ui_cancel"):
+		get_viewport().set_input_as_handled()
+		esc_input()
+	elif event.is_action_pressed("ui_left_click") and state == States.PLAY:
+		get_viewport().set_input_as_handled()
 		click_input()
+
+func esc_input() -> void:
+	get_tree().paused = true
+	var pause_menu: CanvasItem = get_parent().get_node("CanvasLayer/PauseMenu")
+	pause_menu.show()
 
 #region Connections
 func _on_destroy_timer_timeout() -> void:
@@ -116,13 +124,11 @@ func is_in_bounds(location:Vector2) -> bool:
 	return false
 
 func click_input() -> void:
-	if active_move == false and Input.is_action_just_pressed("ui_left_click"):
+	if active_move == false:
 		start_move()
-	elif active_move == true and Input.is_action_just_pressed("ui_left_click"):
+	elif active_move == true:
 		disable_selected_shader()
 		finish_move()
-	#if active_move == true and Input.is_action_just_released("ui_left_click"):
-		#FinishMove()
 #endregion
 
 #region Swapping

@@ -1,9 +1,10 @@
-[gd_scene load_steps=7 format=4 uid="uid://dc7xsbh44je4x"]
+[gd_scene load_steps=8 format=4 uid="uid://dc7xsbh44je4x"]
 
 [ext_resource type="Script" uid="uid://c24odjw765ql7" path="res://Scripts/grid.gd" id="1_80nbo"]
 [ext_resource type="Texture2D" uid="uid://b3y8vi1behn7c" path="res://Assets/Border.png" id="2_e2o6t"]
 [ext_resource type="Texture2D" uid="uid://dfvjh3dnnrmav" path="res://Assets/Landscape.png" id="3_feb5d"]
 [ext_resource type="PackedScene" uid="uid://dwxogjsvah43x" path="res://game_ui.tscn" id="4_fc0e3"]
+[ext_resource type="PackedScene" uid="uid://cpapo5tckx4j1" path="res://pause_menu.tscn" id="5_7jktm"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_feb5d"]
 texture = ExtResource("2_e2o6t")
@@ -65,6 +66,12 @@ offset_left = 389.0
 offset_top = 22.0
 offset_right = 629.0
 offset_bottom = 68.0
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+follow_viewport_enabled = true
+
+[node name="PauseMenu" parent="CanvasLayer" instance=ExtResource("5_7jktm")]
+visible = false
 
 [connection signal="update_score" from="Grid" to="GameUI" method="_on_grid_update_score"]
 [connection signal="timeout" from="Grid/DestroyTimer" to="Grid" method="_on_destroy_timer_timeout"]
