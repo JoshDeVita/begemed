@@ -2,7 +2,7 @@
 
 [ext_resource type="Texture2D" uid="uid://bwte5nqe1lbsr" path="res://Assets/UI - Blue.png" id="1_ue6oa"]
 [ext_resource type="Script" uid="uid://06kv85ppruxf" path="res://Scripts/game_ui.gd" id="2_mj8uy"]
-[ext_resource type="FontFile" uid="uid://dicegf5di15wq" path="res://Assets/Kenney Mini.ttf" id="2_oaw30"]
+[ext_resource type="Theme" uid="uid://cgaseahobhdcj" path="res://Themes/theme.tres" id="3_mj8uy"]
 
 [node name="GameUI" type="NinePatchRect"]
 offset_right = 226.0
@@ -23,7 +23,7 @@ offset_right = 226.0
 offset_bottom = 51.0
 size_flags_horizontal = 3
 size_flags_vertical = 5
-theme_override_fonts/font = ExtResource("2_oaw30")
+theme = ExtResource("3_mj8uy")
 theme_override_font_sizes/font_size = 16
 horizontal_alignment = 1
 vertical_alignment = 1
