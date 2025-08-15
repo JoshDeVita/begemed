@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3 uid="uid://l0se21psoayu"]
+[gd_scene load_steps=3 format=3 uid="uid://l0se21psoayu"]
 
 [ext_resource type="Theme" uid="uid://cgaseahobhdcj" path="res://Themes/theme.tres" id="1_06t4h"]
+[ext_resource type="Script" uid="uid://cubifr17f2b0j" path="res://Scripts/main_menu.gd" id="1_7vrkn"]
 
 [node name="MainMenu" type="CenterContainer"]
 anchors_preset = 15
@@ -8,6 +9,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+script = ExtResource("1_7vrkn")
 
 [node name="PanelContainer" type="PanelContainer" parent="."]
 layout_mode = 2
@@ -38,3 +40,6 @@ text = "Credits"
 layout_mode = 2
 theme_type_variation = &"QuitButton"
 text = "Exit"
+
+[connection signal="pressed" from="PanelContainer/VBoxContainer/NewGameButton" to="." method="_on_new_game_button_pressed"]
+[connection signal="pressed" from="PanelContainer/VBoxContainer/QuitButton" to="." method="_on_quit_button_pressed"]

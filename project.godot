@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="Begemed"
-run/main_scene="uid://dc7xsbh44je4x"
+run/main_scene="uid://l0se21psoayu"
 config/features=PackedStringArray("4.4", "GL Compatibility")
 config/icon="uid://7shkmex26fim"
 
