@@ -32,14 +32,11 @@ text = "Start Game"
 layout_mode = 2
 text = "High Scores"
 
-[node name="CreditsButton" type="Button" parent="PanelContainer/VBoxContainer"]
-layout_mode = 2
-text = "Credits"
-
 [node name="QuitButton" type="Button" parent="PanelContainer/VBoxContainer"]
 layout_mode = 2
 theme_type_variation = &"QuitButton"
 text = "Exit"
 
 [connection signal="pressed" from="PanelContainer/VBoxContainer/NewGameButton" to="." method="_on_new_game_button_pressed"]
+[connection signal="pressed" from="PanelContainer/VBoxContainer/HighScoreButton" to="." method="_on_high_score_button_pressed"]
 [connection signal="pressed" from="PanelContainer/VBoxContainer/QuitButton" to="." method="_on_quit_button_pressed"]

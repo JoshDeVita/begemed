@@ -81,6 +81,10 @@ func _on_refill_timer_timeout() -> void:
 			state = States.PLAY
 		else:
 			print("Game Over")
+
+func _on_game_tree_exiting() -> void:
+	var ui: GameUI = get_parent().get_node("GameUI")
+	HighScoreList.update(ui.current_score)
 #endregion
 
 #region Startup

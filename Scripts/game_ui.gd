@@ -1,4 +1,5 @@
 extends NinePatchRect
+class_name GameUI
 
 @onready var score_label: Label = $ScoreLabel
 var current_score: int = 0

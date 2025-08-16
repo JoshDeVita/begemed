@@ -73,6 +73,7 @@ follow_viewport_enabled = true
 [node name="PauseMenu" parent="CanvasLayer" instance=ExtResource("5_7jktm")]
 visible = false
 
+[connection signal="tree_exiting" from="." to="Grid" method="_on_game_tree_exiting"]
 [connection signal="update_score" from="Grid" to="GameUI" method="_on_grid_update_score"]
 [connection signal="timeout" from="Grid/DestroyTimer" to="Grid" method="_on_destroy_timer_timeout"]
 [connection signal="timeout" from="Grid/CollapseTimer" to="Grid" method="_on_collapse_timer_timeout"]
